@@ -3,6 +3,7 @@
 #include "MazeCharacter.h"
 #include "MazeProjectile.h"
 #include "Animation/AnimInstance.h"
+#include "Engine/TextRenderActor.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -154,34 +155,33 @@ void AMazeCharacter::GenerateMap()
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("HelloWorld"));
 	UWorld* const World = GetWorld();
 
-	constexpr int mapSize = 100;
+	constexpr int mapSize = 9;
 	bool map[mapSize+2][mapSize+2] = { false };
 	for (int ii = 0; ii < mapSize; ++ii)
 	{
 		for (int jj = 0; jj < mapSize; ++jj)
 		{
-			if (ii % 2 == 0 || jj % 2 == 0)
-			{
-				map[ii][jj] = true;
-			}
-			else
-			{
-				map[ii][jj] = false;
-			}
+			map[ii][jj] = false;
+			map[ii][jj] = map[ii][jj] || (ii == 0 || jj == 0 || ii == mapSize - 1 || jj == mapSize - 1);
+			map[ii][jj] = map[ii][jj] || ii % 2 == 0 || jj % 2 == 0;
 		}
 	}
 
 	
-	for (int ii = 0; ii < mapSize; ++ii)
+	for (int ii = 0; ii < mapSize-1; ++ii)
 	{
-		for (int jj = 0; jj < mapSize; ++jj)
+		for (int jj = 0; jj < mapSize-1; ++jj)
 		{
 			if (ii % 2 == 0 || jj % 2 == 0)
 			{
 				continue;
 			}
 
-			if (ii == mapSize - 2)
+
+			if (ii == mapSize - 2 && jj == mapSize - 2)
+				continue;
+
+			if (ii== mapSize - 2)
 			{
 				map[ii][jj + 1] = false;
 				continue;
@@ -189,7 +189,8 @@ void AMazeCharacter::GenerateMap()
 
 			if (jj == mapSize - 2)
 			{
-				map[ii + 1][jj] = false;
+				map[ii+1][jj] = false;
+				continue;
 			}
 
 			if (rand() % 2 == 0)
@@ -207,7 +208,6 @@ void AMazeCharacter::GenerateMap()
 
 	if (World != nullptr && nullptr != DefaultWallBp)
 	{
-
 		for (auto& pWall : _lstWall)
 		{
 			World->DestroyActor(pWall);
@@ -218,16 +218,21 @@ void AMazeCharacter::GenerateMap()
 
 		FVector location(0,0,0);
 		FRotator rotation(0,0,0);
-		for (int ii = 0; ii < 100; ++ii)
+		for (int ii = 0; ii < mapSize; ++ii)
 		{
 			
-			for (int jj = 0; jj < 100; ++jj)
+			for (int jj = 0; jj < mapSize; ++jj)
 			{
 				//if (ii == 0 || jj == 0 || ii == 99 || jj == 99)
 				{
 					if( map[ii][jj])
 					{
-						_lstWall.Add(World->SpawnActor<AWall>(DefaultWallBp, location, rotation, ActorSpawnParams));
+						AWall* wall = World->SpawnActor<AWall>(DefaultWallBp, location, rotation, ActorSpawnParams);
+						_lstWall.Add(wall);
+						//GEngine->AddOnScreenDebugMessage(uint64 Key, float TimeToDisplay, FColor DisplayColor, const FString & DebugMessage, bool bNewerOnTop = true, const FVector2D & TextScale = FVector2D::UnitVector);
+						FString str = FString::Printf(TEXT("%d,%d"), ii, jj);
+						wall->AddDebugText(str);
+						
 					}
 				}
 				location.Y += 100;

@@ -3,6 +3,7 @@
 
 #include "Wall.h"
 #include "Components/BoxComponent.h"
+#include "Components/TextRenderComponent.h"
 
 // Sets default values
 AWall::AWall()
@@ -20,7 +21,9 @@ AWall::AWall()
 
 	// Set as root component
 	RootComponent = CollisionComp;
-	
+	_text = CreateDefaultSubobject<UTextRenderComponent>("TextComponent");
+	_text->SetTextRenderColor(FColor::Green);
+	_text->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform, "");
 }
 
 // Called when the game starts or when spawned
@@ -30,3 +33,7 @@ void AWall::BeginPlay()
 	
 }
 
+void AWall::AddDebugText(const FString& str)
+{
+	_text->SetText(FText::FromString(str));
+}

@@ -15,11 +15,12 @@ class MAZE_API AWall : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AWall();
-	
+	class UTextRenderComponent* _text;
+	void AddDebugText(const FString& str);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	
 public:	
 
 };
