@@ -155,7 +155,7 @@ void AMazeCharacter::GenerateMap()
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("HelloWorld"));
 	UWorld* const World = GetWorld();
 
-	constexpr int mapSize = 9;
+	constexpr int mapSize = 55;
 	bool map[mapSize+2][mapSize+2] = { false };
 	for (int ii = 0; ii < mapSize; ++ii)
 	{

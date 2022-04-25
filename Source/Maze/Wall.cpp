@@ -21,9 +21,12 @@ AWall::AWall()
 
 	// Set as root component
 	RootComponent = CollisionComp;
-	_text = CreateDefaultSubobject<UTextRenderComponent>("TextComponent");
-	_text->SetTextRenderColor(FColor::Green);
-	_text->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform, "");
+
+	{
+		_text = CreateDefaultSubobject<UTextRenderComponent>("TextComponent");
+		_text->SetTextRenderColor(FColor::Green);
+		_text->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform, "");
+	}
 }
 
 // Called when the game starts or when spawned
