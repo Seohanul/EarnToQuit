@@ -150,13 +150,97 @@ bool AMazeCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInpu
 	return false;
 }
 
+
+typedef enum _Direction {
+	DIRECTION_LEFT,
+	DIRECTION_UP,
+	DIRECTION_RIGHT,
+	DIRECTION_DOWN
+} Direction;
+
+typedef enum _MapFlag {
+	MAP_FLAG_WALL,
+	MAP_FLAG_EMPTY,
+	MAP_FLAG_VISITED,
+} MapFlag;
+
+const int DIR[4][2] = { {0,-2},{0,2},{-2,0},{2,0} };
+
+void shuffleArray(int array[], int size)
+{
+	int i, r, temp;
+
+	for (i = 0; i < (size - 1); ++i)
+	{
+		r = i + (rand() % (size - i));
+		temp = array[i];
+		array[i] = array[r];
+		array[r] = temp;
+	}
+}
+
+int inRange(int y, int x, int maxSize)
+{
+	return (y < maxSize - 1 && y > 0) && (x < maxSize - 1 && x > 0);
+}
+
+void generateMap(int y, int x, int* map, int maxSize)
+{
+	int i, nx, ny;
+	int directions[4] = {
+		DIRECTION_UP,
+		DIRECTION_RIGHT,
+		DIRECTION_DOWN,
+		DIRECTION_LEFT
+	};
+
+	map[y + x * maxSize] = MAP_FLAG_VISITED;
+
+	shuffleArray(directions, 4);
+
+	for (i = 0; i < 4; i++)
+	{
+		// 다음 위치를 구한다.
+		nx = x + DIR[directions[i]][0];
+		ny = y + DIR[directions[i]][1];
+
+		if (inRange(ny, nx, maxSize) && map[ny+nx*maxSize] == MAP_FLAG_WALL)
+		{
+			generateMap(ny, nx, map, maxSize);
+			// 세로 축 이동인 경우
+			if (ny != y)
+				map[(ny + y) / 2+x*maxSize] = MAP_FLAG_EMPTY;
+			// 가로 축 이동인 경우
+			else
+				map[y + (x + nx) / 2 * maxSize] = MAP_FLAG_EMPTY;
+			map[ny+nx*maxSize] = MAP_FLAG_EMPTY;
+		}
+	}
+}
+
+FVector2D getRandomStartingPoint(int maxSize)
+{
+	int x = 1 + rand() % (maxSize - 1);
+	int y = 1 + rand() % (maxSize - 1);
+	if (x % 2 == 0)
+		x--;
+	if (y % 2 == 0)
+		y--;
+	return FVector2D(x, y);
+}
+
+
 void AMazeCharacter::GenerateMap()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("HelloWorld"));
 	UWorld* const World = GetWorld();
 
-	constexpr int mapSize = 99;
-	bool map[mapSize+2][mapSize+2] = { false };
+	constexpr int mapSize = 31;
+	int map[mapSize][mapSize] = { 0};
+	memset(map, MAP_FLAG_WALL, sizeof(map));
+	FVector2D startPoint = getRandomStartingPoint(mapSize);
+	generateMap(startPoint.Y, startPoint.X, &map[0][0], mapSize);
+	/*
 	for (int ii = 0; ii < mapSize; ++ii)
 	{
 		for (int jj = 0; jj < mapSize; ++jj)
@@ -205,7 +289,7 @@ void AMazeCharacter::GenerateMap()
 	}
 	
 	
-
+	*/
 	if (World != nullptr && nullptr != DefaultWallBp)
 	{
 		for (auto& pWall : _lstWall)
@@ -225,7 +309,7 @@ void AMazeCharacter::GenerateMap()
 			{
 				//if (ii == 0 || jj == 0 || ii == 99 || jj == 99)
 				{
-					if( map[ii][jj])
+					if(MAP_FLAG_WALL == map[ii][jj])
 					{
 						AWall* wall = World->SpawnActor<AWall>(DefaultWallBp, location, rotation, ActorSpawnParams);
 						_lstWall.Add(wall);
